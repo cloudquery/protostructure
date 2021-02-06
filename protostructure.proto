@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package protostructure;
 
-option go_package = "github.com/mitchellh/protostructure";
+option go_package = "github.com/cloudquery/protostructure";
 
 // Struct represents a struct type.
 //
@@ -13,8 +13,11 @@ option go_package = "github.com/mitchellh/protostructure";
 //   * Methods are not preserved
 //
 message Struct {
+
+  string StructName = 1;
+
   // fields is the list of fields in the struct
-  repeated Field fields = 1;
+  repeated Field fields = 2;
 
   // Field is a field type. See reflect.StructField in the Go stdlib
   // since the fields in this message match that almost exactly.
@@ -26,12 +29,16 @@ message Struct {
   }
 }
 
+message InternalStruct {
+    string Name = 1;
+}
+
 // Type represents a Go type.
 message Type {
   oneof type {
     Primitive primitive = 1;
     Container container = 2;
-    Struct    struct = 3;
+    InternalStruct internal_struct = 3;
 
     // NOTE(mitchellh): for now, we only allow embedding a full Struct type
     // here. If there are a number of fields with the same Struct, then we'll
@@ -50,14 +57,11 @@ message Primitive {
 
 // Container represents any "container" type such as a sliec, array, map, etc.
 message Container {
-  // kind must be one of: array, map, ptr, slice
+  // kind must be one of: array, ptr, slice
   uint32 kind = 1;
 
   // elem is the type of the element of this container
   Type elem = 2;
-
-  // key is the type of the key, only if kind == map
-  Type key = 3;
 
   // count is the number of elements, only if kind == array
   int32 count = 4;

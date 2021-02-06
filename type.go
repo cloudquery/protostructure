@@ -3,7 +3,12 @@ package protostructure
 import (
 	"fmt"
 	"reflect"
+	"time"
 )
+
+var structRegistry = map[string]reflect.Type {
+	"time.Time": reflect.TypeOf(time.Time{}),
+}
 
 // reflectType returns the reflect.Type for a Struct. This will panic if
 // there are any invalid values in Struct. This behavior is not ideal but
@@ -32,14 +37,12 @@ func goType(t *Type) reflect.Type {
 		// Look up the type directly by kind
 		return kindTypes[reflect.Kind(t.Primitive.Kind)]
 
-	case *Type_Struct:
+	case *Type_InternalStruct:
 		// Build the type
-		return reflectType(t.Struct)
+		return structRegistry[t.InternalStruct.Name]
 
 	case *Type_Container:
 		switch reflect.Kind(t.Container.Kind) {
-		case reflect.Map:
-			return reflect.MapOf(goType(t.Container.Key), goType(t.Container.Elem))
 
 		case reflect.Ptr:
 			return reflect.PtrTo(goType(t.Container.Elem))
@@ -103,26 +106,6 @@ func protoType(t reflect.Type) (*Type, error) {
 			},
 		}, nil
 
-	case reflect.Map:
-		key, err := protoType(t.Key())
-		if err != nil {
-			return nil, err
-		}
-
-		elem, err := protoType(t.Elem())
-		if err != nil {
-			return nil, err
-		}
-
-		return &Type{
-			Type: &Type_Container{
-				Container: &Container{
-					Kind: uint32(k),
-					Elem: elem,
-					Key:  key,
-				},
-			},
-		}, nil
 
 	case reflect.Ptr, reflect.Slice:
 		elem, err := protoType(t.Elem())
@@ -140,14 +123,11 @@ func protoType(t reflect.Type) (*Type, error) {
 		}, nil
 
 	case reflect.Struct:
-		elem, err := Encode(t)
-		if err != nil {
-			return nil, err
-		}
-
 		return &Type{
-			Type: &Type_Struct{
-				Struct: elem,
+			Type: &Type_InternalStruct{
+				InternalStruct: &InternalStruct{
+					Name:          t.String(),
+				},
 			},
 		}, nil
 

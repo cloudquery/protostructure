@@ -1,3 +1,7 @@
+Fork of [mitchellh/protostructure](https://github.com/mitchellh/protostructure) tuned to CloudQuery use-case. This is used
+to send struct defs over gRPC from CQ plugins to main process when SQLite is used as a backend so plugins will be CGO free.
+
+
 # protostructure [![Godoc](https://godoc.org/github.com/mitchellh/protostructure?status.svg)](https://godoc.org/github.com/mitchellh/protostructure)
 
 protostructure is a Go library for encoding and decoding a `struct`

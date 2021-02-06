@@ -58,6 +58,7 @@ func Encode(s interface{}) (*Struct, error) {
 
 	// Build our struct
 	var result Struct
+	result.StructName = t.String()
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		fieldType, err := protoType(field.Type)
@@ -95,5 +96,7 @@ func New(s *Struct) (result interface{}, err error) {
 		}
 	}()
 
-	return reflect.New(reflectType(s)).Interface(), nil
+	structType := reflectType(s)
+	structRegistry[s.StructName] = structType
+	return reflect.New(structType).Interface(), nil
 }
